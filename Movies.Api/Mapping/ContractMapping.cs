@@ -23,9 +23,10 @@ namespace Movies.Api.Mapping
             return new MovieResponse {
                 Id = movie.Id,
                 Title = movie.Title,
+                Slug = movie.Slug,
                 YearOfRelease = movie.YearOfRelease,
                 Genres = movie.Genres
-                };
+            };
         }
 
         public static MoviesResponse MapToResponse(this IEnumerable<Movie> movies)
