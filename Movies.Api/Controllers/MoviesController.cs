@@ -24,7 +24,7 @@ namespace Movies.Api.Controllers
         }
 
         [HttpGet(ApiEndpoints.Movies.Get)]
-        public async Task<IActionResult> Get([FromBody] Guid id)
+        public async Task<IActionResult> Get([FromRoute] Guid id)
         {
             Movie? movie = await _movieRepository.GetByIdAsync(id);
             if (movie is null)
