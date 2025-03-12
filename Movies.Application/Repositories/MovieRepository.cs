@@ -36,7 +36,7 @@ namespace Movies.Application.Repositories
 
         public Task<bool> UpdateAsync(Movie movie)
         {
-            int movieIndex = _movies.FindIndex(x => x == movie);
+            int movieIndex = _movies.FindIndex(x => x.Id == movie.Id);
             if (movieIndex == -1)
                 return Task.FromResult(false);
 
