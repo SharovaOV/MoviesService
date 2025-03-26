@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
+using Movies.Application.Database;
 using Movies.Application.Models;
 
 namespace Movies.Application.Repositories
@@ -10,44 +13,61 @@ namespace Movies.Application.Repositories
 
     public class MovieRepository : IMovieRepository
     {
-        List<Movie> _movies = new();
-        public Task<bool> CreateAsync(Movie movie)
+        private IDbConnectionFactory _dbConnectionFactory;
+
+        public async Task<bool> CreateAsync(Movie movie)
         {
-            _movies.Add(movie);
-            return Task.FromResult(true);
+            using IDbConnection connection = await _dbConnectionFactory.CreateConnectionAsync();
+            using var transaction = connection.BeginTransaction();
+            var result = await connection.ExecuteAsync(new CommandDefinition("""
+                insert into movies ( id, slug, title, yearofreliase)
+                values (@Id, @Slug, @Title, @YearOfRelease
+                """, movie));
+
+            if(result >0)
+            {
+                foreach(var genre in movie.Genres)
+                {
+                    await connection.ExecuteAsync(new CommandDefinition("""
+                    insert into genres (movieId, name)
+                    values (@MovieId, @Name)
+                    """, new { MovieId = movie.Id, Name = genre }));
+                }
+            }
+            transaction.Commit();
+
+            return result > 0;
         }
 
         public Task<bool> DeleteByIdAsync(Guid id)
         {
-            int removeCount = _movies.RemoveAll(x => x.Id == id);
-            return Task.FromResult(removeCount > 0);
+            return Task.Run(()=>true);
+        }
+
+        public Task<bool> ExistsByIdAsync(Guid id)
+        {
+            return Task.Run(() => true);
         }
 
         public Task<IEnumerable<Movie>> GetAllAsync()
         {
-            return Task.FromResult(_movies.AsEnumerable());
+            return null;
         }
 
         public Task<Movie?> GetByIdAsync(Guid id)
         {
-            Movie? movie = _movies.FirstOrDefault(x => x.Id == id);
-            return Task.FromResult(movie);
+            return null;
         }
 
         public Task<Movie?> GetBySlugAsync(string slug)
         {
-            Movie? movie = _movies.FirstOrDefault(x => x.Slug == slug);
-            return Task.FromResult(movie);
+            return null;
         }
 
         public Task<bool> UpdateAsync(Movie movie)
         {
-            int movieIndex = _movies.FindIndex(x => x.Id == movie.Id);
-            if (movieIndex == -1)
-                return Task.FromResult(false);
+            return Task.Run(() => true);
 
-            _movies[movieIndex] = movie;
-            return Task.FromResult(true);
         }
     }
 }

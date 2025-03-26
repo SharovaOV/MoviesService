@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Movies.Application.Database;
 using Movies.Application.Models;
 
 namespace Movies.Application.Repositories
@@ -15,5 +16,7 @@ namespace Movies.Application.Repositories
         public Task<IEnumerable<Movie>> GetAllAsync();
         public Task<bool> DeleteByIdAsync(Guid id);
         public Task<bool> UpdateAsync(Movie movie);
+
+        public Task<bool> ExistsByIdAsync(Guid id);
     }
 }
