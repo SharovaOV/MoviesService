@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Mapping;
 using Movies.Application.Models;
 using Movies.Application.Repositories;
@@ -8,6 +9,7 @@ using Movies.Contracts.Responses;
 
 namespace Movies.Api.Controllers
 {
+    
     [ApiController]
     public class MoviesController : ControllerBase
     {
@@ -17,6 +19,7 @@ namespace Movies.Api.Controllers
             _movieService = movieService;
         }
 
+        [Authorize(AuthConstants.AdminUserPolicyName)]
         [HttpPost(ApiEndpoints.Movies.Create)]
         public async Task<IActionResult> Create([FromBody] CreateMovieRequest request, CancellationToken token)
         {
@@ -25,6 +28,8 @@ namespace Movies.Api.Controllers
             return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, movie);
         }
 
+
+        [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpGet(ApiEndpoints.Movies.Get)]
         public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken token)
         {
@@ -38,6 +43,7 @@ namespace Movies.Api.Controllers
             return Ok(movie.MapToResponse());
         }
 
+        [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpGet(ApiEndpoints.Movies.GetAll)]
         public async Task<IActionResult> GetAll(CancellationToken token)
         {
@@ -45,6 +51,7 @@ namespace Movies.Api.Controllers
             return Ok(movies.MapToResponse());
         }
 
+        [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpPut(ApiEndpoints.Movies.Update)]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request , CancellationToken token) 
         {
@@ -58,6 +65,7 @@ namespace Movies.Api.Controllers
             return Ok(movie.MapToResponse());
         }
 
+        [Authorize(AuthConstants.AdminUserPolicyName)]
         [HttpDelete(ApiEndpoints.Movies.Delete)]
         public async Task<IActionResult> Delete([FromRoute]Guid id, CancellationToken token)
         {
