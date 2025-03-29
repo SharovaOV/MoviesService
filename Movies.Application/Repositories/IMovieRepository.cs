@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Movies.Application.Database;
-using Movies.Application.Models;
+﻿using Movies.Application.Models;
 
-namespace Movies.Application.Repositories
+namespace Movies.Application.Repositories;
+
+public interface IMovieRepository
 {
-    public interface IMovieRepository
-    {
-        public Task<bool> CreateAsync(Movie movie);
-        public Task<Movie?> GetByIdAsync(Guid id);
-        public Task<Movie?> GetBySlugAsync(string slug);
-        public Task<IEnumerable<Movie>> GetAllAsync();
-        public Task<bool> DeleteByIdAsync(Guid id);
-        public Task<bool> UpdateAsync(Movie movie);
+    Task<bool> CreateAsync(Movie movie, CancellationToken token = default);
 
-        public Task<bool> ExistsByIdAsync(Guid id);
-    }
+    Task<Movie?> GetByIdAsync(Guid id, CancellationToken token = default);
+
+    Task<Movie?> GetBySlugAsync(string slug, CancellationToken token = default);
+
+    Task<IEnumerable<Movie>> GetAllAsync(CancellationToken token = default);
+
+    Task<Movie?> UpdateAsync(Movie movie, CancellationToken token = default);
+
+    Task<bool> DeleteByIdAsync(Guid id, CancellationToken token = default);
+
+    Task<bool> ExistsByIdAsync(Guid id, CancellationToken token = default);
 }

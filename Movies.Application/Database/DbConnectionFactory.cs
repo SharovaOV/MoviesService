@@ -1,27 +1,26 @@
 ﻿using System.Data;
 using Npgsql;
 
-namespace Movies.Application.Database
+namespace Movies.Application.Database;
+
+public interface IDbConnectionFactory
 {
-    public interface IDbConnectionFactory
+    Task<IDbConnection> CreateConnectionAsync(CancellationToken token = default);
+}
+
+public class NpgsqlConnectionFactory : IDbConnectionFactory
+{
+    private readonly string _connectionString;
+
+    public NpgsqlConnectionFactory(string connectionString)
     {
-        Task<IDbConnection> CreateConnectionAsync();
+        _connectionString = connectionString;
     }
 
-    public class NpgsqlConnectionFactory : IDbConnectionFactory
+    public async Task<IDbConnection> CreateConnectionAsync(CancellationToken token = default)
     {
-        private readonly string _connectionString;
-
-        public NpgsqlConnectionFactory(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        public async Task<IDbConnection> CreateConnectionAsync()
-        {
-            NpgsqlConnection connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync();
-            return connection;
-        }
+        var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync(token);
+        return connection;
     }
 }
