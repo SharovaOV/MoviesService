@@ -20,27 +20,27 @@ namespace Movies.Application.Services
             _movieValidator = movieValidator;
         }
 
-        public async Task<bool> CreateAsync(Movie movie)
+        public async Task<bool> CreateAsync(Movie movie, CancellationToken token = default)
         {
-            await _movieValidator.ValidateAndThrowAsync(movie);
-            return await _movieRepository.CreateAsync(movie);
+            await _movieValidator.ValidateAndThrowAsync(movie, cancellationToken: token);
+            return await _movieRepository.CreateAsync(movie, token);
         }
 
-        public Task<bool> DeleteByIdAsync(Guid id)
-            => _movieRepository.DeleteByIdAsync(id);
+        public Task<bool> DeleteByIdAsync(Guid id, CancellationToken token = default)
+            => _movieRepository.DeleteByIdAsync(id, token);
 
-        public Task<IEnumerable<Movie>> GetAllAsync()
-            => _movieRepository.GetAllAsync();
+        public Task<IEnumerable<Movie>> GetAllAsync(CancellationToken token = default)
+            => _movieRepository.GetAllAsync(token);
 
-        public Task<Movie?> GetByIdAsync(Guid id)
-            => _movieRepository.GetByIdAsync(id);
+        public Task<Movie?> GetByIdAsync(Guid id, CancellationToken token = default)
+            => _movieRepository.GetByIdAsync(id, token);
 
-        public Task<Movie?> GetBySlugAsync(string slug)
-            => _movieRepository.GetBySlugAsync(slug);
+        public Task<Movie?> GetBySlugAsync(string slug, CancellationToken token = default)
+            => _movieRepository.GetBySlugAsync(slug, token);
 
-        public async Task<Movie?> UpdateAsync(Movie movie)
+        public async Task<Movie?> UpdateAsync(Movie movie, CancellationToken token = default)
         {
-            await _movieValidator.ValidateAndThrowAsync(movie);
+            await _movieValidator.ValidateAndThrowAsync(movie, cancellationToken: token);
             var moveExists = await _movieRepository.ExistsByIdAsync(movie.Id);
             if (!moveExists) return null;
             return  await _movieRepository.UpdateAsync(movie); 
