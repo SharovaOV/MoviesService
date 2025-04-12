@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Constants;
 using Movies.Api.Mapping;
@@ -46,15 +47,6 @@ namespace Movies.Api.Controllers
         }
 
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
-        [HttpGet(ApiEndpoints.Movies.GetAll)]
-        public async Task<IActionResult> GetAll(CancellationToken token)
-        {
-            var userId = HttpContext.GetUserId();
-            var movies = await _movieService.GetAllAsync(userId, token);
-            return Ok(movies.MapToResponse());
-        }
-
-        [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpPut(ApiEndpoints.Movies.Update)]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request , CancellationToken token = default) 
         {
@@ -78,5 +70,16 @@ namespace Movies.Api.Controllers
             return Ok();
         }
 
+        [HttpGet(ApiEndpoints.Movies.GetAll)]
+        public async Task<IActionResult> GetAll([FromQuery] GetAllMoviesRequest request, CancellationToken token)
+        {
+            var userId = HttpContext.GetUserId();
+            var options = request.MapToOptions()
+                .WithUser(userId);
+            var movies = await _movieService.GetAllAsync(options, token);
+
+            var movieResponse = movies.MapToResponse();
+            return Ok(movieResponse);
+        }
     }
 }

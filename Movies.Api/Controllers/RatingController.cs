@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Constants;
+using Movies.Api.Mapping;
 using Movies.Application.Services;
 using Movies.Contracts.Requests;
 
@@ -37,7 +38,9 @@ namespace Movies.Api.Controllers
         public async Task<IActionResult> GetUserRatings(CancellationToken token)
         {
             var userId = HttpContext.GetUserId();
-            var result = await _ratingService.GetRatingForUserAsync(userId!.Value, token);
+            var ratings = await _ratingService.GetRatingForUserAsync(userId!.Value, token);
+            var ratingResponce = ratings.MapToResponse();
+            return Ok(ratingResponce);
         }
     }
 }
