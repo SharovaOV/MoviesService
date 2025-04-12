@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Api.Constants;
 using Movies.Api.Mapping;
 using Movies.Application.Models;
 using Movies.Application.Repositories;
@@ -33,9 +34,10 @@ namespace Movies.Api.Controllers
         [HttpGet(ApiEndpoints.Movies.Get)]
         public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken token)
         {
+            var userId = HttpContext.GetUserId();
             Movie? movie = Guid.TryParse(idOrSlug, out Guid id) ?
-                await _movieService.GetByIdAsync(id, token) :
-                await _movieService.GetBySlugAsync(idOrSlug, token);
+                await _movieService.GetByIdAsync(id, userId, token) :
+                await _movieService.GetBySlugAsync(idOrSlug, userId, token);
 
             if (movie is null)
                 return NotFound();
@@ -47,21 +49,22 @@ namespace Movies.Api.Controllers
         [HttpGet(ApiEndpoints.Movies.GetAll)]
         public async Task<IActionResult> GetAll(CancellationToken token)
         {
-            var movies = await _movieService.GetAllAsync(token);
+            var userId = HttpContext.GetUserId();
+            var movies = await _movieService.GetAllAsync(userId, token);
             return Ok(movies.MapToResponse());
         }
 
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpPut(ApiEndpoints.Movies.Update)]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request , CancellationToken token) 
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request , CancellationToken token = default) 
         {
+            var userId = HttpContext.GetUserId();
             Movie? movie = request.MapToMovie(id);
-            Movie? updateMovie = await _movieService.UpdateAsync(movie, token);
+            Movie? updateMovie = await _movieService.UpdateAsync(movie, userId, token);
             if(updateMovie is null)
             {
                 return NotFound();
             }
-
             return Ok(movie.MapToResponse());
         }
 
