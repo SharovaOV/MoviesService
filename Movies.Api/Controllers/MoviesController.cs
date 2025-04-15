@@ -33,7 +33,10 @@ namespace Movies.Api.Controllers
 
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
         [HttpGet(ApiEndpoints.Movies.Get)]
-        public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken token)
+        public async Task<IActionResult> Get(
+            [FromRoute] string idOrSlug,
+            [FromServices] LinkGenerator linkGenerator,
+            CancellationToken token)
         {
             var userId = HttpContext.GetUserId();
             Movie? movie = Guid.TryParse(idOrSlug, out Guid id) ?
@@ -43,7 +46,30 @@ namespace Movies.Api.Controllers
             if (movie is null)
                 return NotFound();
 
-            return Ok(movie.MapToResponse());
+            var response = movie.MapToResponse();
+            var movieObject = new { id = movie.Id };
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Get), values: new { isOrSlug = movie.UserRating }),
+                Rel = "self",
+                Type = "GET"
+            });
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Update)),
+                Rel = "self",
+                Type = "PUT"
+            });
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Delete)),
+                Rel = "self",
+                Type = "DELETE"
+            });
+            return Ok(response);
         }
 
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
@@ -57,7 +83,10 @@ namespace Movies.Api.Controllers
             {
                 return NotFound();
             }
-            return Ok(movie.MapToResponse());
+
+            var response = movie.MapToResponse();
+            //var movieObject = new { id = movie.Id };
+            return Ok(response);
         }
 
         [Authorize(AuthConstants.AdminUserPolicyName)]
