@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Constants;
@@ -27,13 +28,14 @@ namespace Movies.Api.Controllers
         {
             Movie movie = request.MapToMove();
             await _movieService.CreateAsync(movie, token);
-            return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, movie);
+            return CreatedAtAction(nameof(GetV1), new { idOrSlug = movie.Id }, movie);
         }
 
 
         [Authorize(AuthConstants.TrustedMemberPolicyName)]
+        [ApiVersion(1.0, Deprecated = true)]
         [HttpGet(ApiEndpoints.Movies.Get)]
-        public async Task<IActionResult> Get(
+        public async Task<IActionResult> GetV1(
             [FromRoute] string idOrSlug,
             [FromServices] LinkGenerator linkGenerator,
             CancellationToken token)
@@ -51,7 +53,49 @@ namespace Movies.Api.Controllers
 
             response.Links.Add(new Link
             {
-                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Get), values: new { isOrSlug = movie.UserRating }),
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(GetV1), values: new { isOrSlug = movie.UserRating }),
+                Rel = "self",
+                Type = "GET"
+            });
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Update)),
+                Rel = "self",
+                Type = "PUT"
+            });
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(Delete)),
+                Rel = "self",
+                Type = "DELETE"
+            });
+            return Ok(response);
+        }
+
+        [Authorize(AuthConstants.TrustedMemberPolicyName)]
+        [ApiVersion(2.0)]
+        [HttpGet(ApiEndpoints.Movies.Get)]
+        public async Task<IActionResult> GetV2(
+            [FromRoute] string idOrSlug,
+            [FromServices] LinkGenerator linkGenerator,
+            CancellationToken token)
+        {
+            var userId = HttpContext.GetUserId();
+            Movie? movie = Guid.TryParse(idOrSlug, out Guid id) ?
+                await _movieService.GetByIdAsync(id, userId, token) :
+                await _movieService.GetBySlugAsync(idOrSlug, userId, token);
+
+            if (movie is null)
+                return NotFound();
+
+            var response = movie.MapToResponse();
+            var movieObject = new { id = movie.Id };
+
+            response.Links.Add(new Link
+            {
+                Href = linkGenerator.GetPathByAction(HttpContext, nameof(GetV2), values: new { isOrSlug = movie.UserRating }),
                 Rel = "self",
                 Type = "GET"
             });

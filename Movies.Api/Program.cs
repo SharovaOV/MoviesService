@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Movies.Application.Repositories;
 using System.Text;
 using Movies.Api;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager config = builder.Configuration;
@@ -41,6 +42,15 @@ builder.Services.AddAuthorization( x =>
             c.User.HasClaim(m => m is { Type: AuthConstants.TrustMemberClaimName, Value: "true"}) 
             ));
 });
+
+
+builder.Services.AddApiVersioning(x => {
+    x.DefaultApiVersion = new ApiVersion(1.0);
+    x.AssumeDefaultVersionWhenUnspecified = true;
+    x.ReportApiVersions = true;
+    x.ApiVersionReader = new MediaTypeApiVersionReader("api-version");
+    })
+.AddMvc();
 
 builder.Services.AddControllers();
 
